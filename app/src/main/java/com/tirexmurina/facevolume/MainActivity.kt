@@ -10,6 +10,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.tirexmurina.facevolume.features.editScreen.EditScreen
+import com.tirexmurina.facevolume.features.infoScreen.InfoScreen
+import com.tirexmurina.facevolume.features.mainScreen.MainScreen
+import com.tirexmurina.facevolume.features.searchScreen.SearchScreen
+import com.tirexmurina.facevolume.features.settingsScreen.SettingsScreen
 import com.tirexmurina.facevolume.ui.theme.FaceVolumeTheme
 
 class MainActivity : ComponentActivity() {
@@ -22,9 +32,66 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting("Android")
+                    FaceVolumeApp()
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun FaceVolumeApp() {
+    val navController = rememberNavController()
+    NavHost(
+        navController = navController,
+        startDestination = "main"){
+        composable("main") {
+            MainScreen(
+                // При клике на контакт переходим на InfoScreen или EditScreen,
+                // например:
+                onItemClick = { contactId -> navController.navigate("info/$contactId") },
+                onSettingsClick = { navController.navigate("settings") },
+                onSearchClick = { navController.navigate("search") },
+                onAddClick = { /* обработка добавления нового контакта */ }
+            )
+        }
+        composable(
+            "info/{contactId}",
+            arguments = listOf(navArgument("contactId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val contactId = backStackEntry.arguments?.getLong("contactId")
+            InfoScreen(
+                onBackClick = { navController.popBackStack() },
+                onEditClick = { id -> navController.navigate("edit/${id}") },
+                contactId = contactId
+            )
+        }
+        composable(
+            "edit/{contactId}",
+            arguments = listOf(navArgument("contactId") {
+                type = NavType.LongType
+                nullable = true
+                defaultValue = null
+            })
+        ) { backStackEntry ->
+            val contactId = backStackEntry.arguments?.getLong("contactId")
+            // Здесь contactId может быть null, что означает создание нового контакта.
+            EditScreen(
+                onBackClick = { navController.popBackStack() },
+                contactId = contactId
+            )
+        }
+        composable("search") {
+            SearchScreen(
+                onBackClick = { navController.popBackStack() },
+                onItemClick = { contactId -> navController.navigate("info/$contactId") },
+            )
+        }
+        composable("settings") {
+            SettingsScreen(
+                onBackClick = { navController.popBackStack() },
+                onModeSwitchClick = { /*TODO*/ }
+            )
         }
     }
 }
