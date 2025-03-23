@@ -8,18 +8,25 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.tirexmurina.facevolume.R
+import com.tirexmurina.facevolume.shared.domain.entity.Contact
 
 @Composable
 fun CustomSearchField(
@@ -27,7 +34,6 @@ fun CustomSearchField(
     onQueryChange: (String) -> Unit,
     onClear: () -> Unit,
     modifier: Modifier = Modifier,
-    placeholder: String = "Поиск",
     backgroundColor: Color = Color(0xFFE0E0E0),
     cornerRadius: Dp = 16.dp,
     contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
@@ -48,14 +54,19 @@ fun CustomSearchField(
                 Box(modifier = Modifier.weight(1f)) {
                     if (query.isEmpty()) {
                         Text(
-                            text = placeholder,
+                            text = "Поиск",
                             style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray)
                         )
                     }
                     innerTextField()
                 }
                 if (query.isNotEmpty()) {
-                    IconButton(onClick = onClear) {
+                    IconButton(
+                        onClick = {
+                            onClear()
+
+                        }
+                    ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_clear),
                             contentDescription = "Очистить",
@@ -66,4 +77,63 @@ fun CustomSearchField(
             }
         }
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TimezoneDropdown(
+    timezones: List<Contact.Timezone>,
+    selectedTimezone: Contact.Timezone?,
+    onTimezoneSelected: (Contact.Timezone) -> Unit,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = onExpandedChange,
+        modifier = modifier
+    ) {
+        OutlinedTextField(
+            value = selectedTimezone?.zoneName ?: "",
+            onValueChange = { /* readOnly */ },
+            readOnly = true,
+            label = {
+                Text(
+                    text = "Часовой пояс",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onTertiary
+                )
+            },
+            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onSecondary
+            ),
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor()
+                .focusProperties { canFocus = false }
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { onExpandedChange(false) }
+        ) {
+            timezones.forEach { tz ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = tz.zoneName,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    },
+                    onClick = {
+                        onTimezoneSelected(tz)
+                        onExpandedChange(false)
+                    }
+                )
+            }
+        }
+    }
 }
