@@ -10,4 +10,6 @@ interface ContactRepository {
 
     suspend fun updateContact(contact: Contact)
 
+    suspend fun getRandomContact() : Contact
+
 }
