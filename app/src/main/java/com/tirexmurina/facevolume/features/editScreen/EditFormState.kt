@@ -9,13 +9,13 @@ class EditFormState(initialContact: Contact?) {
     private val originalContact: Contact? = initialContact
 
     private val initialName = initialContact?.name ?: ""
-    private val initialEmail = initialContact?.email ?: ""
-    private val initialPhone = initialContact?.phone ?: ""
-    private val initialCountry = initialContact?.location?.country ?: ""
-    private val initialCity = initialContact?.location?.city ?: ""
-    private val initialAddress = initialContact?.location?.address ?: ""
+    private val initialEmail = initialContact?.email
+    private val initialPhone = initialContact?.phone
+    private val initialCountry = initialContact?.location?.country
+    private val initialCity = initialContact?.location?.city
+    private val initialAddress = initialContact?.location?.address
     private val initialTimezone = initialContact?.location?.timezone
-    private val initialNotes = initialContact?.note ?: ""
+    private val initialNotes = initialContact?.note
     private val initialPic = initialContact?.pic
 
     var name by mutableStateOf(initialName)
