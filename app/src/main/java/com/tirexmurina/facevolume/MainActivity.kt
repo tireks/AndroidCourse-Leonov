@@ -92,7 +92,10 @@ fun FaceVolumeApp() {
                             navController.popBackStack()  // удаляем старый InfoScreen
                             navController.navigate("info/$contactId")
                         } else {
-                            navController.popBackStack()
+                            navController.navigate("main") {
+                                popUpTo("main") { inclusive = true }
+                                launchSingleTop = true
+                            }
                         }
                     },
                     contactId = contactId
