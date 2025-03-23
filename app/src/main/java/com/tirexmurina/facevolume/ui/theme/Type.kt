@@ -1,5 +1,6 @@
 package com.tirexmurina.facevolume.ui.theme
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -83,8 +84,7 @@ val CustomTypography = Typography(
         fontWeight = FontWeight.W400,
         fontSize = 12.sp,
         lineHeight = 18.sp,
-        letterSpacing = 0.5.sp,
-        color = TextLightColor
+        letterSpacing = 0.5.sp
     )
 
 )

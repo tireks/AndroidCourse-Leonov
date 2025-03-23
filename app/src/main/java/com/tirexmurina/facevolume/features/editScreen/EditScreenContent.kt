@@ -1,5 +1,6 @@
 package com.tirexmurina.facevolume.features.editScreen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,11 +18,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,32 +40,91 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.tirexmurina.facevolume.R
-import com.tirexmurina.facevolume.features.infoScreen.InfoScreenContent
+import com.tirexmurina.facevolume.features.util.TimezoneDropdown
 import com.tirexmurina.facevolume.shared.domain.entity.Contact
 import com.tirexmurina.facevolume.ui.theme.FaceVolumeTheme
 import com.tirexmurina.facevolume.ui.theme.MainAccentColor
-import com.tirexmurina.facevolume.ui.theme.MainBackgroundColor
 
 @Composable
 fun EditScreenContent(
     onBackClick:() -> Unit,
-    contact : Contact? = null
+    contact : Contact? = null,
+    onSave: (Contact) -> Unit
 ) {
+    val formState = remember { EditFormState(contact) }
+    var showExitDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MainBackgroundColor)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         EditScreenToolbar(
-            onBackClick = { onBackClick() }
+            onBackClick = {
+                if (formState.unsavedChanges) {
+                    showExitDialog = true
+                } else {
+                    onBackClick()
+                }
+            },
+            onSaveClick = {
+                val newContact = formState.save()
+                if (newContact != null) {
+                    onSave(newContact)
+                    onBackClick()
+                }
+            }
         )
-        EditScreenContainer(contact)
+        EditScreenContainer(formState = formState)
+    }
+
+    if (showExitDialog) {
+        AlertDialog(
+            onDismissRequest = { showExitDialog = false },
+            title = { Text("Несохранённые изменения") },
+            text = { Text("Введённые изменения не сохранены. Сохранить изменения?") },
+            confirmButton = {
+                Button(onClick = {
+                    val newContact = formState.save()
+                    if (newContact != null) {
+                        onSave(newContact)
+                        showExitDialog = false
+                        onBackClick()
+                    }
+                }) {
+                    Text(
+                        text = "Сохранить",
+                        color = MainAccentColor
+                    )
+                }
+            },
+            dismissButton = {
+                Button(onClick = {
+                    showExitDialog = false
+                    onBackClick()
+                }) {
+                    Text(
+                        text = "Не сохранять",
+                        color = MainAccentColor
+                    )
+                }
+            }
+        )
+    }
+
+    BackHandler {
+        if (formState.unsavedChanges) {
+            showExitDialog = true
+        } else {
+            onBackClick()
+        }
     }
 }
 
 @Composable
 fun EditScreenToolbar(
-    onBackClick:() -> Unit
+    onBackClick: () -> Unit,
+    onSaveClick: () -> Unit
 ) {
     Column {
         Row(
@@ -78,20 +136,22 @@ fun EditScreenToolbar(
         ) {
             IconButton(
                 modifier = Modifier.size(24.dp),
-                onClick = { onBackClick() }
+                onClick = onBackClick
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_back_arrow),
-                    contentDescription = "Назад"
+                    contentDescription = "Назад",
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
             IconButton(
                 modifier = Modifier.size(24.dp),
-                onClick = { /*TODO тут валидацию стартуем, потом назад если ок все*/ }
+                onClick = onSaveClick
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_save),
-                    contentDescription = "Редактировать"
+                    contentDescription = "Сохранить",
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
@@ -99,32 +159,29 @@ fun EditScreenToolbar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp),
-            color = MainAccentColor
+            color = MaterialTheme.colorScheme.onPrimary
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditScreenContainer(
-    contact: Contact?
+    formState: EditFormState
 ) {
-    // Обертка для прокрутки
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp) // Общий горизонтальный отступ
+            .padding(horizontal = 16.dp)
     ) {
-        // Аватарка: 100х100, по центру, отступ сверху 18dp, кликабельная
         Spacer(modifier = Modifier.height(18.dp))
         Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            if (contact?.pic != null) {
+            if (formState.pic != null) {
                 Image(
-                    painter = rememberAsyncImagePainter(contact.pic),
+                    painter = rememberAsyncImagePainter(formState.pic),
                     contentDescription = "Аватар контакта",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -148,174 +205,147 @@ fun EditScreenContainer(
             }
         }
 
-        // Поля ввода разделены отступами 32dp сверху
         Spacer(modifier = Modifier.height(32.dp))
-        // Имя (обязательно)
-        var name by remember { mutableStateOf(contact?.name ?: "") }
         OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
+            value = formState.name,
+            onValueChange = { formState.name = it },
             label = {
                 Text(
                     text = "Имя (обязательно)",
-                    style = MaterialTheme.typography.labelSmall
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onTertiary
                 )
             },
-            textStyle = MaterialTheme.typography.bodyMedium,
+            isError = formState.nameError != null,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onSecondary
+            ),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
-
+        if (formState.nameError != null) {
+            Text(
+                text = formState.nameError ?: "",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
         Spacer(modifier = Modifier.height(32.dp))
-        // Email
-        var email by remember { mutableStateOf(contact?.email ?: "") }
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
+            value = formState.email,
+            onValueChange = { formState.email = it },
             label = {
                 Text(
                     text = "Email",
-                    style = MaterialTheme.typography.labelSmall
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onTertiary
                 )
             },
-            textStyle = MaterialTheme.typography.bodyMedium,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onSecondary
+            ),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
-
         Spacer(modifier = Modifier.height(32.dp))
-        // Телефон
-        var phone by remember { mutableStateOf(contact?.phone ?: "") }
         OutlinedTextField(
-            value = phone,
-            onValueChange = { phone = it },
+            value = formState.phone,
+            onValueChange = { formState.phone = it },
             label = {
                 Text(
                     text = "Телефон",
-                    style = MaterialTheme.typography.labelSmall
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onTertiary
                 )
             },
-            textStyle = MaterialTheme.typography.bodyMedium,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onSecondary
+            ),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
-
         Spacer(modifier = Modifier.height(32.dp))
-        // Страна
-        var country by remember { mutableStateOf(contact?.location?.country ?: "") }
         OutlinedTextField(
-            value = country,
-            onValueChange = { country = it },
+            value = formState.country,
+            onValueChange = { formState.country = it },
             label = {
                 Text(
                     text = "Страна",
-                    style = MaterialTheme.typography.labelSmall
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onTertiary
                 )
             },
-            textStyle = MaterialTheme.typography.bodyMedium,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onSecondary
+            ),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
-
         Spacer(modifier = Modifier.height(32.dp))
-        // Город
-        var city by remember { mutableStateOf(contact?.location?.city ?: "") }
         OutlinedTextField(
-            value = city,
-            onValueChange = { city = it },
+            value = formState.city,
+            onValueChange = { formState.city = it },
             label = {
                 Text(
                     text = "Город",
-                    style = MaterialTheme.typography.labelSmall
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onTertiary
                 )
             },
-            textStyle = MaterialTheme.typography.bodyMedium,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onSecondary
+            ),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
-
         Spacer(modifier = Modifier.height(32.dp))
-        // Адрес
-        var address by remember { mutableStateOf(contact?.location?.address ?: "") }
         OutlinedTextField(
-            value = address,
-            onValueChange = { address = it },
+            value = formState.address,
+            onValueChange = { formState.address = it },
             label = {
                 Text(
                     text = "Адрес",
-                    style = MaterialTheme.typography.labelSmall
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onTertiary
                 )
             },
-            textStyle = MaterialTheme.typography.bodyMedium,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onSecondary
+            ),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
-
         Spacer(modifier = Modifier.height(32.dp))
-        // Часовой пояс (выпадающий список)
         var expanded by remember { mutableStateOf(false) }
-        val timezones = listOf("MSK", "EST", "PST", "CET", "IST") // TODO
-        var selectedTimezone by remember { mutableStateOf(contact?.location?.timezone?.zoneName ?: "") }
-        ExposedDropdownMenuBox(
+        val timezones = Contact.Timezone.entries
+        TimezoneDropdown(
+            timezones = timezones,
+            selectedTimezone = formState.selectedTimezone,
+            onTimezoneSelected = { formState.selectedTimezone = it },
             expanded = expanded,
-            onExpandedChange = { expanded = !expanded }
-        ) {
-            OutlinedTextField(
-                value = selectedTimezone,
-                onValueChange = { selectedTimezone = it },
-                label = {
-                    Text(
-                        text = "Часовой пояс",
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                },
-                textStyle = MaterialTheme.typography.bodyMedium,
-                readOnly = true,
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                timezones.forEach { tz ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = tz,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        },
-                        onClick = {
-                            selectedTimezone = tz
-                            expanded = false
-                        }
-                    )
-                }
-            }
-        }
-
+            onExpandedChange = { expanded = it},
+            modifier = Modifier.fillMaxWidth()
+        )
         Spacer(modifier = Modifier.height(32.dp))
-        // Заметки
-        var notes by remember { mutableStateOf(contact?.note ?: "") }
         OutlinedTextField(
-            value = notes,
-            onValueChange = { notes = it },
+            value = formState.notes,
+            onValueChange = { formState.notes = it },
             label = {
                 Text(
                     text = "Заметки",
-                    style = MaterialTheme.typography.labelSmall
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onTertiary
                 )
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 100.dp),
             singleLine = false,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onSecondary
+            ),
             minLines = 3
         )
-
         Spacer(modifier = Modifier.height(32.dp))
     }
 }
@@ -337,7 +367,8 @@ fun testPreview() {
                     address = "Виа делла Ротонда, д. 36",
                     timezone = Contact.Timezone.MSK_0
                 )
-            )
+            ),
+            { }
         )
     }
 }

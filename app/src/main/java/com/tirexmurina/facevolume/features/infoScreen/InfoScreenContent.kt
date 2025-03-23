@@ -46,7 +46,7 @@ import com.tirexmurina.facevolume.ui.theme.MainBackgroundColor
 @Composable
 fun InfoScreenContent(
     onBackClick:() -> Unit,
-    onEditClick: (String) -> Unit,
+    onEditClick: (Long) -> Unit,
     onDialerClick:() -> Unit,
     onEmailClick: () -> Unit,
     contact: Contact
@@ -54,11 +54,12 @@ fun InfoScreenContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MainBackgroundColor)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         InfoToolbar(
             onBackClick = { onBackClick() },
-            onEditClick = { onEditClick(it) }
+            onEditClick = { onEditClick(it) },
+            contact = contact
         )
         InfoScreenContainer(
             onDialerClick = { onDialerClick() },
@@ -71,7 +72,8 @@ fun InfoScreenContent(
 @Composable
 fun InfoToolbar(
     onBackClick: () -> Unit,
-    onEditClick: (String) -> Unit
+    onEditClick: (Long) -> Unit,
+    contact: Contact
 ) {
     Column {
         Row(
@@ -87,16 +89,18 @@ fun InfoToolbar(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_back_arrow),
-                    contentDescription = "Назад"
+                    contentDescription = "Назад",
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
             IconButton(
                 modifier = Modifier.size(24.dp),
-                onClick = { /*onEditClick()*/ }
+                onClick = { onEditClick(contact.id) }
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_edit),
-                    contentDescription = "Редактировать"
+                    contentDescription = "Редактировать",
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
@@ -104,7 +108,7 @@ fun InfoToolbar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp),
-            color = MainAccentColor
+            color = MaterialTheme.colorScheme.onPrimary
         )
     }
 }
@@ -125,13 +129,6 @@ fun InfoScreenContainer(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            /*Image(
-                painter = painterResource(id = R.drawable.ic_avatar_placeholder),
-                contentDescription = "Аватар контакта",
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
-            )*/
             if (contact.pic != null){
                 Image(
                     painter = rememberAsyncImagePainter(contact.pic),
@@ -150,8 +147,6 @@ fun InfoScreenContainer(
                 )
             }
         }
-
-        // Имя контакта
         Spacer(modifier = Modifier.height(4.dp))
         Box(
             modifier = Modifier.fillMaxWidth(),
@@ -159,88 +154,95 @@ fun InfoScreenContainer(
         ) {
             Text(
                 text = contact.name,
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSecondary
             )
         }
 
-        // Блок Email
         if (contact.email != null){
             Spacer(modifier = Modifier.height(24.dp))
             Column(modifier = Modifier.padding(start = 18.dp)) {
                 Text(
                     text = "Email",
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondary
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = contact.email,
                     style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSecondary,
                     modifier = Modifier.clickable { onEmailClick() }
                 )
             }
         }
 
-        // Блок Телефон
         if (contact.phone != null) {
             Spacer(modifier = Modifier.height(24.dp))
             Column(modifier = Modifier.padding(start = 18.dp)) {
                 Text(
                     text = "Телефон",
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondary
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = contact.phone,
                     style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSecondary,
                     modifier = Modifier.clickable { onDialerClick() }
                 )
             }
         }
-        // Блок Локация
         if (contact.location != null){
             Spacer(modifier = Modifier.height(24.dp))
             Column(modifier = Modifier.padding(start = 18.dp)) {
                 Text(
                     text = "Локация",
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondary
                 )
                 if (contact.location.country != null){
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = contact.location.country,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSecondary
                     )
                 }
                 if (contact.location.city != null){
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = contact.location.city,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSecondary
                     )
                 }
                 if (contact.location.address != null){
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = contact.location.address,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSecondary
                     )
                 }
                 if (contact.location.timezone != null) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = contact.location.timezone.zoneName,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSecondary
                     )
                 }
             }
         }
 
-        // Блок Заметки
         Spacer(modifier = Modifier.height(24.dp))
         Column(modifier = Modifier.padding(horizontal = 18.dp)) {
             Text(
                 text = "Заметки",
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSecondary
             )
             Spacer(modifier = Modifier.height(4.dp))
             var notes by remember { mutableStateOf(contact.note ?: "") }
@@ -253,7 +255,8 @@ fun InfoScreenContainer(
                 placeholder = {
                     Text(
                         "Введите заметки...",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSecondary
                     )
                 },
                 singleLine = false,

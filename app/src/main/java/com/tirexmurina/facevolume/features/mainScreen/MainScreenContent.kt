@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -32,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,12 +49,13 @@ fun MainScreenContent(
     onItemClick: (Long) -> Unit,
     onSettingsClick: () -> Unit,
     onSearchClick: () -> Unit,
-    onAddClick: () -> Unit
+    onAddClick: () -> Unit,
+    contactList : List<Contact>
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MainBackgroundColor)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         MainScreenToolbar(
             onSettingsClick = { onSettingsClick() },
@@ -60,7 +63,8 @@ fun MainScreenContent(
         Spacer(modifier = Modifier.height(10.dp))
         MainScreenContainer(
             onItemClick = { onItemClick(it)},
-            onAddClick = { onAddClick() }
+            onAddClick = { onAddClick() },
+            contactList = contactList
         )
     }
 }
@@ -68,18 +72,17 @@ fun MainScreenContent(
 @Composable
 fun MainScreenContainer(
     onItemClick: (Long) -> Unit,
-    onAddClick: () -> Unit
+    onAddClick: () -> Unit,
+    contactList: List<Contact>
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 0.dp)
         ) {
-            // Например, выводим 20 элементов
-            items(11) { index ->
+            items(contactList) { contact ->
                 MainScreenContactCard(
-                    itemName = "Элемент $index",
-                    null,
+                    contact,
                     onItemClick = { onItemClick(it) }
                 )
             }
@@ -121,7 +124,8 @@ fun MainScreenToolbar(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_search),
-                    contentDescription = "Search"
+                    contentDescription = "Search",
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
             Spacer(modifier = Modifier.width(24.dp))
@@ -131,7 +135,8 @@ fun MainScreenToolbar(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_settings),
-                    contentDescription = "Settings"
+                    contentDescription = "Settings",
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
@@ -139,36 +144,37 @@ fun MainScreenToolbar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp),
-            color = MainAccentColor
+            color = MaterialTheme.colorScheme.onPrimary
         )
     }
 }
 
 @Composable
 fun MainScreenContactCard(
-    /*contact : Contact*/
-    itemName: String,
-    itemPic: String?,
+    contact : Contact,
     onItemClick: (Long) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            /*.clickable{ onItemClick(contact.id) }*/
+            .clickable{ onItemClick(contact.id) }
             .padding(horizontal = 16.dp, vertical = 6.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = SecondaryBackgroundColor)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, top = 8.dp, bottom = 8.dp)
         ) {
-            if (itemPic != null){
+            if (contact.pic != null){
                 Image(
-                    painter = rememberAsyncImagePainter(itemPic),
+                    painter = rememberAsyncImagePainter(contact.pic),
                     contentDescription = "Item avatar",
-                    contentScale = ContentScale.FillHeight
+                    contentScale = ContentScale.FillHeight,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
                 )
             } else {
                 Image(
@@ -181,8 +187,9 @@ fun MainScreenContactCard(
                 modifier = Modifier
                     .padding(start = 8.dp)
                     .align(Alignment.CenterVertically),
-                text = itemName,
-                style = MaterialTheme.typography.bodyMedium
+                text = contact.name,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSecondary
             )
         }
 
@@ -197,7 +204,102 @@ fun testPreview() {
             { },
             { },
             { },
-            { }
+            { },
+            listOf(
+                Contact(
+                    id = 1,
+                    name = "Alice Johnson",
+                    email = "alice.johnson@example.com",
+                    phone = "+1 555 1234",
+                    note = "Met at a conference.",
+                    pic = "https://example.com/avatar1.png",
+                    location = Contact.Location(
+                        country = "USA",
+                        city = "New York",
+                        address = "123 Broadway",
+                        timezone = Contact.Timezone.MSK_B13
+                    )
+                ),
+                Contact(
+                    id = 2,
+                    name = "Bob Williams",
+                    email = "bob.williams@example.com",
+                    phone = "+1 555 2345",
+                    note = null,
+                    pic = null,
+                    location = Contact.Location(
+                        country = "USA",
+                        city = "Los Angeles",
+                        address = "456 Hollywood Blvd",
+                        timezone = null
+                    )
+                ),
+                Contact(
+                    id = 3,
+                    name = "Catherine Miller",
+                    email = null,
+                    phone = "+44 20 7946 0958",
+                    note = "Important client.",
+                    pic = "https://example.com/avatar3.png",
+                    location = Contact.Location(
+                        country = "UK",
+                        city = "London",
+                        address = "789 Baker Street",
+                        timezone = null
+                    )
+                ),
+                Contact(
+                    id = 4,
+                    name = "David Brown",
+                    email = "david.brown@example.com",
+                    phone = null,
+                    note = "Follow up next week.",
+                    pic = "https://example.com/avatar4.png",
+                    location = null
+                ),
+                Contact(
+                    id = 5,
+                    name = "Eva Green",
+                    email = "eva.green@example.com",
+                    phone = "+49 30 123456",
+                    note = null,
+                    pic = null,
+                    location = Contact.Location(
+                        country = "Germany",
+                        city = "Berlin",
+                        address = "Alexanderplatz 1",
+                        timezone = Contact.Timezone.MSK_2
+                    )
+                ),
+                Contact(
+                    id = 6,
+                    name = "Frank Harris",
+                    email = null,
+                    phone = null,
+                    note = "Loyal customer.",
+                    pic = "https://example.com/avatar6.png",
+                    location = Contact.Location(
+                        country = "Canada",
+                        city = "Toronto",
+                        address = "Queen Street West",
+                        timezone = Contact.Timezone.MSK_0
+                    )
+                ),
+                Contact(
+                    id = 7,
+                    name = "Grace Lee",
+                    email = "grace.lee@example.com",
+                    phone = "+81 3-1234-5678",
+                    note = "Interested in new products.",
+                    pic = null,
+                    location = Contact.Location(
+                        country = "Japan",
+                        city = "Tokyo",
+                        address = null,
+                        timezone = null
+                    )
+                )
+            )
         )
     }
 }
