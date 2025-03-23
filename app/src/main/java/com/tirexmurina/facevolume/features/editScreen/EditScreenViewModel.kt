@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.tirexmurina.facevolume.features.infoScreen.InfoScreenState
 import com.tirexmurina.facevolume.shared.domain.entity.Contact
 import com.tirexmurina.facevolume.shared.domain.usecase.GetContactByIdUseCase
+import com.tirexmurina.facevolume.shared.domain.usecase.GetRandomContactUseCase
 import com.tirexmurina.facevolume.shared.domain.usecase.UpdateContactUseCase
 import com.tirexmurina.facevolume.shared.util.ContactSavingException
 import com.tirexmurina.facevolume.shared.util.NoSuchElementException
@@ -18,7 +19,8 @@ import javax.inject.Inject
 @HiltViewModel
 class EditScreenViewModel @Inject constructor(
     private val getContactByIdUseCase: GetContactByIdUseCase,
-    private val updateContactUseCase: UpdateContactUseCase
+    private val updateContactUseCase: UpdateContactUseCase,
+    private val getRandomContactUseCase: GetRandomContactUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<EditScreenState>(EditScreenState.Initial)
@@ -48,6 +50,18 @@ class EditScreenViewModel @Inject constructor(
             try {
                 updateContactUseCase(contact)
             } catch (e : Exception) {
+                errorHandler(e)
+            }
+        }
+    }
+
+    fun getRandomContact() {
+        _uiState.value = EditScreenState.Loading
+        viewModelScope.launch {
+            try {
+                val result = getRandomContactUseCase()
+                _uiState.value = EditScreenState.Success(result)
+            } catch ( e : Exception) {
                 errorHandler(e)
             }
         }
