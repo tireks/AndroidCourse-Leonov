@@ -34,7 +34,8 @@ fun EditScreen(
             EditScreenContent(
                 onBackClick = onBackClick,
                 contact = (viewState as EditScreenState.Success).contact,
-                onSave = { viewModel.saveContact(it) }
+                onSave = { viewModel.saveContact(it) },
+                onRandomClick = { viewModel.getRandomContact() }
             )
         }
 

@@ -49,7 +49,8 @@ import com.tirexmurina.facevolume.ui.theme.MainAccentColor
 fun EditScreenContent(
     onBackClick:() -> Unit,
     contact : Contact? = null,
-    onSave: (Contact) -> Unit
+    onSave: (Contact) -> Unit,
+    onRandomClick: () -> Unit
 ) {
     val formState = remember { EditFormState(contact) }
     var showExitDialog by remember { mutableStateOf(false) }
@@ -73,7 +74,9 @@ fun EditScreenContent(
                     onSave(newContact)
                     onBackClick()
                 }
-            }
+            },
+            onRandomClick = onRandomClick,
+            canRandomize = contact == null
         )
         EditScreenContainer(formState = formState)
     }
@@ -124,7 +127,9 @@ fun EditScreenContent(
 @Composable
 fun EditScreenToolbar(
     onBackClick: () -> Unit,
-    onSaveClick: () -> Unit
+    onSaveClick: () -> Unit,
+    onRandomClick: () -> Unit,
+    canRandomize : Boolean
 ) {
     Column {
         Row(
@@ -143,6 +148,18 @@ fun EditScreenToolbar(
                     contentDescription = "Назад",
                     tint = MaterialTheme.colorScheme.onPrimary
                 )
+            }
+            if (canRandomize) {
+                IconButton(
+                    modifier = Modifier.size(24.dp),
+                    onClick = onRandomClick
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_random), // используйте свой ресурс
+                        contentDescription = "Создать контакт случайно",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
             }
             IconButton(
                 modifier = Modifier.size(24.dp),
@@ -368,6 +385,7 @@ fun testPreview() {
                     timezone = Contact.Timezone.MSK_0
                 )
             ),
+            { },
             { }
         )
     }
