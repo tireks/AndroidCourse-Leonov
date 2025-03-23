@@ -232,7 +232,7 @@ fun EditScreenContainer(
         }
         Spacer(modifier = Modifier.height(32.dp))
         OutlinedTextField(
-            value = formState.email,
+            value = formState.email ?: "",
             onValueChange = { formState.email = it },
             label = {
                 Text(
@@ -249,7 +249,7 @@ fun EditScreenContainer(
         )
         Spacer(modifier = Modifier.height(32.dp))
         OutlinedTextField(
-            value = formState.phone,
+            value = formState.phone ?: "",
             onValueChange = { formState.phone = it },
             label = {
                 Text(
@@ -266,7 +266,7 @@ fun EditScreenContainer(
         )
         Spacer(modifier = Modifier.height(32.dp))
         OutlinedTextField(
-            value = formState.country,
+            value = formState.country ?: "",
             onValueChange = { formState.country = it },
             label = {
                 Text(
@@ -283,7 +283,7 @@ fun EditScreenContainer(
         )
         Spacer(modifier = Modifier.height(32.dp))
         OutlinedTextField(
-            value = formState.city,
+            value = formState.city ?: "",
             onValueChange = { formState.city = it },
             label = {
                 Text(
@@ -300,7 +300,7 @@ fun EditScreenContainer(
         )
         Spacer(modifier = Modifier.height(32.dp))
         OutlinedTextField(
-            value = formState.address,
+            value = formState.address ?: "",
             onValueChange = { formState.address = it },
             label = {
                 Text(
@@ -328,7 +328,7 @@ fun EditScreenContainer(
         )
         Spacer(modifier = Modifier.height(32.dp))
         OutlinedTextField(
-            value = formState.notes,
+            value = formState.notes ?: "",
             onValueChange = { formState.notes = it },
             label = {
                 Text(
