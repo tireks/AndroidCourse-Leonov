@@ -76,6 +76,12 @@ dependencies {
     annotationProcessor libs.androidx.room.compiler
     kapt libs.androidx.room.compiler
 
+    implementation libs.retrofit
+    implementation libs.converter.scalars
+    implementation libs.converter.gson
+    implementation libs.gson
+    implementation libs.okhttp
+
     implementation libs.hilt.android
     kapt libs.hilt.android.compiler
     kapt libs.androidx.hilt.compiler
