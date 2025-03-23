@@ -36,19 +36,21 @@ import com.tirexmurina.facevolume.ui.theme.MainBackgroundColor
 
 @Composable
 fun SettingsScreenContent(
-    onBackClick:() -> Unit,
-    onModeSwitchClick:() -> Unit
+    onBackClick: () -> Unit,
+    isDarkThemeEnabled: Boolean,
+    onModeSwitchClick: (Boolean) -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MainBackgroundColor)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         SettingsScreenToolbar(
             onBackClick = { onBackClick() }
         )
         SettingsScreenContainer(
-            onModeSwitchClick = { onModeSwitchClick() }
+            isDarkThemeEnabled = isDarkThemeEnabled,
+            onModeSwitchClick = onModeSwitchClick
         )
     }
 }
@@ -71,7 +73,8 @@ fun SettingsScreenToolbar(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_back_arrow),
-                    contentDescription = "Назад"
+                    contentDescription = "Назад",
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
@@ -79,18 +82,16 @@ fun SettingsScreenToolbar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp),
-            color = MainAccentColor
+            color = MaterialTheme.colorScheme.onPrimary
         )
     }
 }
 
 @Composable
 fun SettingsScreenContainer(
-    onModeSwitchClick: () -> Unit
+    isDarkThemeEnabled: Boolean,
+    onModeSwitchClick: (Boolean) -> Unit
 ) {
-    // Локальное состояние для переключателя, можно заменить на состояние из ViewModel
-    var isDarkThemeEnabled by remember { mutableStateOf(false) }
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -100,14 +101,12 @@ fun SettingsScreenContainer(
     ) {
         Text(
             text = "Темная тема",
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSecondary
         )
         Switch(
             checked = isDarkThemeEnabled,
-            onCheckedChange = { newValue ->
-                isDarkThemeEnabled = newValue
-                onModeSwitchClick()
-            }
+            onCheckedChange = onModeSwitchClick
         )
     }
 }
@@ -118,6 +117,7 @@ fun testPreview() {
     FaceVolumeTheme {
         SettingsScreenContent(
             {  },
+            true,
             {  }
         )
     }

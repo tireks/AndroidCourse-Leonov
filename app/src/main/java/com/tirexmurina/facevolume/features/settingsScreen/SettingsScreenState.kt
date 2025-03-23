@@ -1,4 +1,4 @@
 package com.tirexmurina.facevolume.features.settingsScreen
 
-interface SettingsScreenState {
+sealed interface SettingsScreenState {
 }
