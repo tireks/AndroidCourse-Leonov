@@ -12,15 +12,11 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-class ContactModule {
-
-    @Provides
-    @Singleton
-    fun provideFakeContacts() : FakeContacts = FakeContacts
+class DomainModule {
 
     @Module
     @InstallIn(SingletonComponent::class)
-    interface ContactModuleInt {
+    interface DomainModuleInt {
         @Binds
         @Singleton
         fun provideContactRepository(repository: ContactRepositoryImpl) : ContactRepository
